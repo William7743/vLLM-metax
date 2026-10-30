@@ -1,0 +1,15 @@
+--- a/op/vllm/activation_kernels.cu
++++ b/op/vllm/activation_kernels.cu
+@@ -125,9 +125,10 @@
+     const float alpha,
+     const float beta,
+     const bool step4) {
+-  const scalar_t* x_ptr = input + blockIdx.x * 2 * d;
++  const int64_t row = static_cast<int64_t>(blockIdx.x);
++  const scalar_t* x_ptr = input + row * 2 * d;
+   const scalar_t* y_ptr = x_ptr + d;
+-  scalar_t* out_ptr = out + blockIdx.x * d;
++  scalar_t* out_ptr = out + row * d;
+ 
+   if constexpr (use_vec) {
+     using cuda_t = typename CUDATypeConverter<scalar_t>::Type;

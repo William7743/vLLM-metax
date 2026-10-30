@@ -1,0 +1,7 @@
+# Native SiLU with 64-bit row offsets
+
+`native_silu_i64.cu` extracts the original act_and_mul kernel and helpers from public mcoplib commit 3c3d0f2 (release 0.4.11), changes row-address arithmetic to int64, and adds a C-callable BF16, vectorized SiLU wrapper. `mcoplib_0411_native_i64.patch` is the source-level patch against that commit. The installed build reports 0.4.11 but a different internal commit; source identity is not established. The installed library was not modified.
+
+Build on the tested C500 environment with `bash build.sh`. `native_correctness.py` accepts M and D and compares all output elements against the installed official activation in bounded segments. Tests passed for D=2304 and M=16, 1024, 932069, 1572864. Full MoE tests for T=155345 and 262144 used the experimental mcTlass i64 patch and guarded u32 quantization and matched official chunked outputs element by element; logs are in the parent folder. The native wrapper currently requires BF16 contiguous inputs, D divisible by 8, and supports SiLU only; full MoE integration was tested at D=2304. Other dtypes, widths, activations, devices, exceptional values and build versions have not received comprehensive validation.
+
+Full MoE event timing, seven samples, T=155345 and 262144: native 290.0728 and 485.2278 ms; bounded native activation 289.5196 and 484.7409 ms. Measured in separate non-interleaved runs; do not treat the differences as statistically significant.

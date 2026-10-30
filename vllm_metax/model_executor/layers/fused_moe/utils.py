@@ -108,8 +108,18 @@ def maybe_override_stage_block_size_m(
         quantized_hidden_states = hidden_states
 
     if use_int8_w8a8:
+        # Reuse the quantized input when it has the same metadata expected by
+        # the kernel selector. Other callers retain the original conversion.
+        query_input = hidden_states
+        if (
+            quantized_hidden_states.dtype == torch.int8
+            and quantized_hidden_states.shape == hidden_states.shape
+            and quantized_hidden_states.stride() == hidden_states.stride()
+            and quantized_hidden_states.device == hidden_states.device
+        ):
+            query_input = quantized_hidden_states
         kernel_m = mctlass_ops.cutlass_moe_mm_w8a8_get_kernel_m(
-            hidden_states, w1, intermediate_cache13, top_k_num
+            query_input, w1, intermediate_cache13, top_k_num
         )
         assert kernel_m > 0, "cutlass_moe_w8a8 BLOCK_SIZE_M must greater than zero."
         staged_configs[0]["BLOCK_SIZE_M"] = kernel_m

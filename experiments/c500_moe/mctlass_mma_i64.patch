@@ -1,0 +1,23 @@
+--- a/maca_moe_mma_multistage_i8_tn_128x128x256_m4.h
++++ b/maca_moe_mma_multistage_i8_tn_128x128x256_m4.h
+@@ -267,7 +267,7 @@
+ 
+     int ldg_a_offs_m[kStage][kLdgNumPerStage];  // 4*2 mtreg
+     int ldg_b_offs_n[kStage][kLdgNumPerStage];  // 4*2 mtreg
+-    int ldgA_offs[kStage][kLdgNumPerStage];
++    uint64_t ldgA_offs[kStage][kLdgNumPerStage];
+     int lds_k[kLdsNumPerK], asld[kLdsNumPerK], bsld[kLdsNumPerK];
+     ABType a[kStage][kLdsNumPerK][4];       // 64 mtreg
+     ABType b[kStage][kLdsNumPerK][4];       // 64 mtreg
+@@ -300,9 +300,9 @@
+ #pragma unroll
+         for (uint32_t ldgi = 0; ldgi < kLdgNumPerStage; ++ldgi) {
+             if constexpr (IsTopkLog2){
+-                ldgA_offs[stagei][ldgi] = (ldg_a_offs_m[stagei][ldgi] >> moe_params.topk_bits) * K + ldg_k;
++                ldgA_offs[stagei][ldgi] = static_cast<uint64_t>(ldg_a_offs_m[stagei][ldgi] >> moe_params.topk_bits) * static_cast<uint64_t>(K) + static_cast<uint64_t>(ldg_k);
+             }else{
+-                ldgA_offs[stagei][ldgi] = (ldg_a_offs_m[stagei][ldgi] / moe_params.topk) * K + ldg_k;
++                ldgA_offs[stagei][ldgi] = static_cast<uint64_t>(ldg_a_offs_m[stagei][ldgi] / moe_params.topk) * static_cast<uint64_t>(K) + static_cast<uint64_t>(ldg_k);
+             }
+ 
+             __builtin_mxc_ldg_b128_bsm_predicator(
